@@ -3,6 +3,7 @@ import { prisma } from "@repo/db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 export const signUpController = async (req: Request, res: Response) => {
+    console.log(req.body)
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -21,12 +22,12 @@ export const signUpController = async (req: Request, res: Response) => {
 
     return res.status(201).json({ message: "User created successfully" });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ error });
   }
 };
 
 export const signInController = async (req: Request, res: Response) => {
-  const { email, password, userId } = req.body;
+  const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: "Missing required fields." });
   }
@@ -41,7 +42,7 @@ export const signInController = async (req: Request, res: Response) => {
     if (!isMatching) {
       return res.status(401).json({ message: "Incorrect password." });
     }
-    const token: string = jwt.sign({ userId, email }, process.env.JWT_SECRET!, {
+    const token: string = jwt.sign({userId: existingUser.id, email }, process.env.JWT_SECRET!, {
       expiresIn: "2h",
     });
     return res.status(200).json({ token });
