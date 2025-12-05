@@ -1,11 +1,7 @@
 {
-  "name": "ws",
+  "name": "@repo/redis",
   "module": "index.ts",
   "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "bun index.ts"
-  },
   "devDependencies": {
     "@types/bun": "latest"
   },
@@ -13,8 +9,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@repo/redis": "*",
-    "dotenv": "^17.2.3",
-    "ws": "^8.18.3"
+    "ioredis": "^5.8.2"
   }
 }
