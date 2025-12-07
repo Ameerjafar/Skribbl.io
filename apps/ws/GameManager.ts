@@ -5,6 +5,7 @@ interface UserType {
   ws: WebSocket;
   admin: boolean;
   totalScores: number;
+  yourTurn: boolean;
 }
 interface Setting {
   totalPlayers: number;
@@ -31,6 +32,7 @@ export class GameManager {
     totalRounds,
     playedRounds,
     totalScores,
+    yourTurn,
   }: {
     roomId: string;
     name: string;
@@ -39,13 +41,15 @@ export class GameManager {
     totalRounds: number;
     playedRounds: number;
     totalScores: number;
+    yourTurn: boolean;
   }) {
     if (admin) {
       this.rooms.set(roomId, [
-        [{ name, ws, admin, totalScores }],
+        [{ name, ws, admin, totalScores, yourTurn }],
         [{ totalRounds, playedRounds }],
       ]);
       console.log(this.rooms);
+      return true;
     }
     const existingRoom = this.rooms.get(roomId);
     if (!existingRoom && !admin) {
@@ -55,6 +59,13 @@ export class GameManager {
       if (user.ws === ws) {
         return false;
       }
+    });
+    existingRoom![0].push({
+      name,
+      ws,
+      admin,
+      totalScores,
+      yourTurn,
     });
     return true;
   }
@@ -102,6 +113,14 @@ export class GameManager {
     }
     const [users, rounds] = existingRoom;
     const prevRound = rounds[0]?.playedRounds;
+    const playerTurn = (prevRound!) % users.length;
+    if(!users[playerTurn]?.yourTurn) {
+      return false;
+    } 
+    users[playerTurn + 1]!.yourTurn = true;
+    users[playerTurn]!.yourTurn = false;
+    console.log("name of the users", users[playerTurn - 1]?.name);
+    
     const updatedRounds = [
       {
         totalRounds: rounds[0]!.totalRounds,
@@ -109,6 +128,7 @@ export class GameManager {
       },
     ];
     this.rooms.set(roomId, [users, updatedRounds]);
-    return {currentRound: prevRound! + 1};
+    console.log(existingRoom)
+    return { playedRound: prevRound! + 1 };
   }
 }

@@ -24,7 +24,7 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
         totalRounds: parseData.totalRounds,
         wordCount: parseData.wordCount,
       };
-      gameManager.addUser({
+      const addUser = gameManager.addUser({
         roomId,
         name,
         ws,
@@ -32,11 +32,15 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
         totalRounds: addSetting.totalPlayers,
         playedRounds: 0,
         totalScores: 0,
+        yourTurn: true
       });
+      if(!addUser) {
+        return ws.send(JSON.stringify("addUser is failed"))
+      }
       const allUser = gameManager.getAllUser({ roomId });
       gameManager.setSetting({ setting: addSetting, roomId });
       if (!allUser) {
-        ws.send(JSON.stringify("There is no user in this room"));
+        return ws.send(JSON.stringify("There is no user in this room"));
       }
       allUser?.forEach((user: UserType) => {
         if (user.ws !== ws && user.ws.readyState === WebSocket.OPEN) {
@@ -47,7 +51,7 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
       const roomId = parseData.roomId;
       const name = parseData.name;
       const admin = parseData.admin;
-      gameManager.addUser({
+      const addUser = gameManager.addUser({
         roomId,
         name,
         admin,
@@ -55,7 +59,11 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
         playedRounds: 0,
         totalRounds: parseData.totalRounds,
         totalScores: 0,
+        yourTurn: false
       });
+      if(!addUser) {
+        return ws.send(JSON.stringify("add user is failed"));
+      } 
       const allUser = gameManager.getAllUser({ roomId });
       allUser?.forEach((user: UserType) => {
         if (user.ws !== ws && user.ws.readyState === WebSocket.OPEN) {
@@ -64,20 +72,21 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
       });
     }
     if (parseData.type === "updateRound") {
+      console.log("I am calling")
       const roomId = parseData.roomId;
-      const roundResponse =  gameManager.updateRound({roomId});
+      const roundResponse = gameManager.updateRound({ roomId });
       if (!roundResponse) {
-        ws.send(JSON.stringify("we cannot update the round"));
+        return ws.send(JSON.stringify("we cannot update the round"));
       }
       const allUser = gameManager.getAllUser({ roomId });
       if (!allUser) {
-        ws.send(JSON.stringify("we cannot get the user"));
+        return ws.send(JSON.stringify("we cannot get the user"));
       }
       allUser?.forEach((user) => {
-        if (user.ws !== ws && user.ws.readyState === WebSocket.OPEN) {
+        if (user.ws.readyState === WebSocket.OPEN) {
           const object = {
             type: "roundUpdated",
-            currenRound: roundResponse
+            currenRound: roundResponse,
           };
           user.ws.send(JSON.stringify(object));
         }
