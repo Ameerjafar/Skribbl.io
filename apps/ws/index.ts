@@ -17,7 +17,7 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
       const roomId = parseData.roomId;
       const name = parseData.name;
       const admin = parseData.admin;
-
+      const userId = parseData.userId;
       const addSetting = {
         totalPlayers: parseData.totalPlayers,
         drawtime: parseData.drawtime,
@@ -32,10 +32,11 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
         totalRounds: addSetting.totalPlayers,
         playedRounds: 0,
         totalScores: 0,
-        yourTurn: true
+        yourTurn: true,
+        userId,
       });
-      if(!addUser) {
-        return ws.send(JSON.stringify("addUser is failed"))
+      if (!addUser) {
+        return ws.send(JSON.stringify("addUser is failed"));
       }
       const allUser = gameManager.getAllUser({ roomId });
       gameManager.setSetting({ setting: addSetting, roomId });
@@ -51,6 +52,7 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
       const roomId = parseData.roomId;
       const name = parseData.name;
       const admin = parseData.admin;
+      const userId = parseData.userId;
       const addUser = gameManager.addUser({
         roomId,
         name,
@@ -59,11 +61,12 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
         playedRounds: 0,
         totalRounds: parseData.totalRounds,
         totalScores: 0,
-        yourTurn: false
+        yourTurn: false,
+        userId,
       });
-      if(!addUser) {
+      if (!addUser) {
         return ws.send(JSON.stringify("add user is failed"));
-      } 
+      }
       const allUser = gameManager.getAllUser({ roomId });
       allUser?.forEach((user: UserType) => {
         if (user.ws !== ws && user.ws.readyState === WebSocket.OPEN) {
@@ -71,8 +74,8 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
         }
       });
     }
+
     if (parseData.type === "updateRound") {
-      console.log("I am calling")
       const roomId = parseData.roomId;
       const roundResponse = gameManager.updateRound({ roomId });
       if (!roundResponse) {
@@ -87,7 +90,29 @@ wss.on("connection", async (ws: WebSocket, req: any) => {
           const object = {
             type: "roundUpdated",
             currenRound: roundResponse,
+            userId: roundResponse.nextDrawer,
           };
+          user.ws.send(JSON.stringify(object));
+        }
+      });
+    }
+    if (parseData.type === "updatePoints") {
+      const roomId = parseData.roomId;
+      const response = gameManager.updatePoints({
+        roomId,
+        userId: parseData.userId,
+      });
+      if (!response) {
+        ws.send(JSON.stringify("we cannot update the score properly"));
+      }
+      const allUser = gameManager.getAllUser({ roomId });
+      const object = {
+        type: "message",
+        message: `${parseData.name} is guessed the word`,
+        userId: parseData.userId,
+      };
+      allUser?.forEach((user) => {
+        if (user.ws.readyState === WebSocket.OPEN) {
           user.ws.send(JSON.stringify(object));
         }
       });
