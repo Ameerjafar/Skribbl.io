@@ -29,17 +29,14 @@ export const Drawer = () => {
         console.log("no canvas or you cannot draw");
         return;
       }
-
-      currentStroke.current.forEach((stroke: { x: number; y: number }) => {
-        canvasStyle.strokeStyle = bgColor;
-        canvasStyle.lineWidth = 6;
-        canvasStyle.lineCap = "round";
-        canvasStyle.lineJoin = "round";
-        canvasStyle.beginPath();
-        canvasStyle.moveTo(prevPoint.current.x, prevPoint.current.y);
-        canvasStyle.lineTo(currPoint.current.x, currPoint.current.y);
-        canvasStyle.stroke();
-      });
+      canvasStyle.strokeStyle = bgColor;
+      canvasStyle.lineWidth = 6;
+      canvasStyle.lineCap = "round";
+      canvasStyle.lineJoin = "round";
+      canvasStyle.beginPath();
+      canvasStyle.moveTo(prevPoint.current.x, prevPoint.current.y);
+      canvasStyle.lineTo(currPoint.current.x, currPoint.current.y);
+      canvasStyle.stroke();
     };
 
     const mouseMovment = (e: MouseEvent) => {
@@ -70,7 +67,7 @@ export const Drawer = () => {
     const mouseLeaveHanlder = (e: MouseEvent) => {
       isDrawer.current = false;
     };
-
+             
     canvas.addEventListener("mousedown", mouseDownHanlder);
     canvas.addEventListener("mousemove", mouseMoveHandler);
     canvas.addEventListener("mouseup", mouseUpHanlder);
